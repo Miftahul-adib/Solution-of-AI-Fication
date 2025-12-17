@@ -1,7 +1,7 @@
 # Transcribing Regional Bangladeshi Dialects: A Dual-Stage Sequential Fine-Tuning Approach
 
 **Team Name:** Backprop Sust  
-**Competition:** AI-FICATION 2025 - Shobdotori Challenge
+**Competition:** শব্দতরী: Where Dialects Flow into Bangla
 
 [![Python](https://img.shields.io/badge/Python-3.8%2B-blue)](https://www.python.org/)
 [![PyTorch](https://img.shields.io/badge/PyTorch-Framework-red)](https://pytorch.org/)
