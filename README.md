@@ -213,54 +213,7 @@ To prevent catastrophic forgetting while adapting to dialect-specific features, 
 
 ---
 
-## 🚀 Getting Started
 
-### Prerequisites
-```bash
-Python 3.8+
-PyTorch 2.0+
-transformers
-peft
-datasets
-librosa
-```
-
-### Installation
-```bash
-# Clone the repository
-git clone https://github.com/yourusername/shobdotori-asr.git
-cd shobdotori-asr
-
-# Install dependencies
-pip install -r requirements.txt
-```
-
-### Usage
-```bash
-# Training Phase 1
-python train_phase1.py --config configs/phase1_config.yaml
-
-# Training Phase 2
-python train_phase2.py --config configs/phase2_config.yaml
-
-# Inference
-python inference.py --model_path checkpoints/best_model --input_audio sample.wav
-```
-
----
-
-## 📁 Repository Structure
-```
-├── configs/                 # Training configuration files
-├── data/                    # Dataset preparation scripts
-├── models/                  # Model architecture and LoRA configs
-├── preprocessing/           # Audio and text preprocessing
-├── postprocessing/          # Punctuation restoration ensemble
-├── training/                # Training scripts for both phases
-├── inference/               # Inference and evaluation scripts
-├── Images/                  # Figures and visualizations
-└── README.md
-```
 
 ---
 
@@ -297,26 +250,19 @@ If you find this work useful for your research, please cite:
 ## 📧 Contact
 
 For questions or collaboration opportunities, please reach out to:
-- **Md Nasiat Hasan Fahim** - [Email/GitHub]
-- **Miftahul Alam Adib** - [Email/GitHub]
-- **Arif Hussain** - [Email/GitHub]
+
+**Miftahul Alam Adib**  
+📧 [miftahuladib04@gmail.com](mailto:miftahuladib04@gmail.com)
+
 
 ---
 
 ## 🙏 Acknowledgments
 
-- OpenAI for the Whisper model architecture
-- Bengali.AI community for the foundational speech recognition checkpoint
-- AI-FICATION 2025 organizers for hosting the Shobdotori challenge
-- Shahjalal University of Science and Technology for institutional support
+AI-FICATION 2025 organizers for hosting the Shobdotori challenge
 
----
 
-## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
----
 
 <div align="center">
   <strong>⭐ If you find this project helpful, please consider giving it a star! ⭐</strong>
