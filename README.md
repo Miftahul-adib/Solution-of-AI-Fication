@@ -32,20 +32,29 @@ Our solution leverages the **OpenAI Whisper Medium** architecture, optimized via
 
 ## 🧩 Problem Statement
 
-Standard ASR models often fail on regional dialects due to "accent mismatch". Key challenges included:
-* **Acoustic Variability:** Phonetic shifts, such as standard `/p/` (*Pani*) becoming `/f/` (*Fani*) in Noakhali/Sylhet.
-* **Morphological Variation:** Different verb conjugations (e.g., Standard *Jabo* vs. Regional *Zaiyum* or *Zamu*).
-* **Class Imbalance:** Significant disparity in data availability (e.g., 401 samples for Chittagong vs. 21 for Khulna).
+Standard ASR models often fail on regional dialects due to "accent mismatch". Key challenges identified in the dataset included:
+
+1.  **Extreme Class Imbalance:** As shown below, there is a significant disparity in data availability. While regions like Chittagong and Mymensingh have ~400 samples, Khulna and Jessore have fewer than 35.
+2.  **Acoustic Variability:** Phonetic shifts (e.g., `/p/` $\to$ `/f/`).
+3.  **Data Redundancy:** A massive amount of sentence duplication in the training set.
+
+![Distribution of Samples by District](Images/district_distribution.png)
+*Figure 1: Distribution of training samples across 20 districts, highlighting severe class imbalance.*
 
 ---
 
 ## 🛠 Methodology
 
+Our approach follows a comprehensive pipeline from stratified data splitting to deep punctuation restoration.
+
+![System Architecture Flowchart](Images/Flowchart%20of%20paper.png)
+*Figure 2: Complete workflow of our proposed solution.*
+
 ### 1. Model Architecture & Initialization
-We utilized the **Whisper Medium (769M parameters)** model. Instead of generic pre-trained weights, we initialized our model using the **1st Place Solution checkpoint from the Bengali.AI Speech Recognition competition**, providing a robust foundation for Bengali acoustics.
+We utilized the **Whisper Medium (769M parameters)** model. We initialized our model using the **1st Place Solution checkpoint from the Bengali.AI Speech Recognition competition**, providing a robust foundation for Bengali acoustics.
 
 ### 2. Dual-Stage Sequential Fine-Tuning
-To prevent catastrophic forgetting, we employed a two-phase training curriculum with the following hyperparameters:
+To prevent catastrophic forgetting and adapt to the specific dialect data, we employed a two-phase training curriculum:
 
 | Phase | Dataset Mix | Epochs | Warmup Steps | Learning Rate | Composite Score Formula |
 | :--- | :--- | :--- | :--- | :--- | :--- |
@@ -53,7 +62,7 @@ To prevent catastrophic forgetting, we employed a two-phase training curriculum 
 | **Phase 2** | Main + Bengali.AI | 8 | 0 | 1e-4 | S_final = 0.95 × WER_main + 0.05 × WER_diff |
 
 * **Adaptive Weighting:** We used composite scoring to balance the learning rate between the main dialect dataset and auxiliary datasets.
-* **High-Rank LoRA:** We implemented LoRA with **Rank 1024**, Alpha 64, and Dropout 0.1, targeting `q_proj` and `v_proj` modules to capture long-tail vocabulary.
+* **High-Rank LoRA:** Implemented LoRA with **Rank 1024**, Alpha 64, and Dropout 0.1, targeting `q_proj` and `v_proj`.
 
 ### 3. Data Preprocessing
 * **Audio:** Resampled to 16 kHz mono; generated Log-Mel Spectrograms.
@@ -62,20 +71,36 @@ To prevent catastrophic forgetting, we employed a two-phase training curriculum 
 
 ### 4. Post-Processing Pipeline
 * **Inference:** Greedy Decoding (`num_beams=1`) with batch size 4 on T4 GPUs.
-* **Repetition Suppression:** Truncated word sequences repeating more than 8 times to remove "stuttering" artifacts.
-* **Deep Punctuation Restoration:** An ensemble of four **BERT (MuRIL-base)** models was used. We applied Class-Weighted Voting [1.0, 1.4, 1.0, 0.8] to optimize the precision of standard Bengali punctuation (।, ?, ,).
+* **Deep Punctuation Restoration:** An ensemble of four **BERT (MuRIL-base)** models using Class-Weighted Voting [1.0, 1.4, 1.0, 0.8] to optimize standard Bengali punctuation.
 
 ---
 
-## 📊 Dataset Details
+## 📊 Dataset Analysis & Insights
 
-We augmented the primary competition dataset with external resources.
+We conducted a rigorous Exploratory Data Analysis (EDA) to design our training strategy.
 
-| Dataset | Type | Samples | Filtering Criteria |
-| :--- | :--- | :--- | :--- |
-| **Shobdotori** | Primary (Dialect) | 3,350 | Stratified Split |
-| **DL Sprint** | Auxiliary | ~2,389 | Length 4-11 words, High Upvotes |
-| **Bengali.AI** | Auxiliary | ~3,719 | 4-5 word concise phrases |
+### 1. Data Duplication & Text Length
+A critical finding was the lack of linguistic diversity in the primary dataset.
+* **High Duplication:** Out of **3,350 total sentences**, only **386 were unique**. Approximately 88% of the dataset consisted of duplicate sentences.
+* **Text Length:** Despite the sample imbalance, the text length distribution remained relatively consistent across districts (median ~30 characters).
+
+<p float="left">
+  <img src="Images/total_vs_unique_sentences%20vs%20duplicate.png" width="45%" />
+  <img src="Images/text_length_by_district.png" width="45%" /> 
+</p>
+*Figure 3: (Left) Analysis of sentence uniqueness vs. duplication. (Right) Character length boxplots per district.*
+
+### 2. Necessity of Auxiliary Datasets
+To counter the limitations of the primary Shobdotori dataset (short audio duration and low vocabulary size), we augmented it with **AI Speech** and **DL Sprint** datasets.
+
+* **Audio Duration:** The primary dataset had a mean duration of only **4.2s**. The auxiliary datasets provided longer samples (up to ~5.4s mean), helping the model generalize to longer utterances.
+* **Vocabulary:** The primary dataset only contained **590 unique words**. Adding the auxiliary datasets expanded our vocabulary to over **7,000 words**, crucial for better language modeling.
+
+![Dataset Statistics Comparison](Images/dataset_comparison.png)
+*Figure 4: Comparison of Total Samples, Text Length, Word Count, and Vocabulary Size across datasets.*
+
+![Audio Duration Analysis](Images/audio_duration_comparison.png)
+*Figure 5: Duration distribution and cumulative percentage across the three datasets.*
 
 ---
 
@@ -100,4 +125,3 @@ If you find this approach useful, please cite our work:
   year={2025},
   organization={Shahjalal University of Science and Technology}
 }
-```
